@@ -25,11 +25,13 @@ const http = require("node:http");
 
 const server = http.createServer((req , res) => {
 
-    // get request : 
+    // GET /tasks → fetch all tasks
     const url = new URL(req.url , `http://${req.headers.host}`);
 
-    if(req.method === "GET" && url.pathname === "/tasks"){
+    const parts = url.pathname.split("/");
 
+    if(req.method === "GET" && url.pathname === "/tasks"){
+        
         res.writeHead(200 , {
             "content-type" : "application/json"
         });
@@ -40,16 +42,42 @@ const server = http.createServer((req , res) => {
         }));
     }
 
-    // route not found : 
+    // GET /tasks/:id → fetch a specific task
+    if(req.method === "GET" && parts[1] === "tasks" && parts[2]){
 
-    res.writeHead(404 , {
-        "content-type" : "application/json"
+        const id = Number(parts[2]);
+
+        const task = tasks.find((task) => task.id === id);
+
+        if (!task) {
+        res.writeHead(404, {
+            "Content-Type": "application/json"
+        });
+
+        return res.end(JSON.stringify({
+            error: "Task not found"
+        }));
+    }
+
+    res.writeHead(200, {
+        "Content-Type": "application/json"
+    });
+
+    return res.end(JSON.stringify({
+        message: "Task fetched successfully",
+        task: task
+    }));
+    
+    }
+
+    res.writeHead(404 ,{
+         "content-type" : "application/json"
     });
 
     res.end(JSON.stringify({
-        message : "route not found"
+        error : "route not found"
     }));
-})
+});
 
 
 
