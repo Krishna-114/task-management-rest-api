@@ -25,17 +25,34 @@ const http = require("node:http");
 
 const server = http.createServer((req , res) => {
 
-    console.log("url : " , req.url);
-    console.log("method : " , req.method);
-    
-    res.writeHead(200 , {
+    // get request : 
+    const url = new URL(req.url , `http://${req.headers.host}`);
+
+    if(req.method === "GET" && url.pathname === "/tasks"){
+
+        res.writeHead(200 , {
+            "content-type" : "application/json"
+        });
+
+        return res.end(JSON.stringify({
+            message : "tasks fetched successfully" , 
+            data : tasks
+        }));
+    }
+
+    // route not found : 
+
+    res.writeHead(404 , {
         "content-type" : "application/json"
     });
 
     res.end(JSON.stringify({
-        message : "Task api is running"
+        message : "route not found"
     }));
 })
+
+
+
 
 server.listen(3000 , () => {
     console.log("Server running on http://localhost:3000");
