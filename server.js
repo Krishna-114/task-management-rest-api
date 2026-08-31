@@ -23,6 +23,7 @@ const tasks = [
 
 const http = require("node:http");
 
+
 const server = http.createServer((req , res) => {
 
     // GET /tasks → fetch all tasks
@@ -70,11 +71,69 @@ const server = http.createServer((req , res) => {
     
     }
 
-    res.writeHead(404 ,{
-         "content-type" : "application/json"
+    if(req.method === "POST" && url.pathname === "/tasks"){
+
+        let body = "";
+
+        req.on("data" , (chunk) => {
+            body += chunk;
+        });
+
+        req.on("end" , () => {
+
+            try {
+
+                const data = JSON.parse(body);
+                console.log("data : " , data);
+
+                if(!data.title || (data.status !== "completed" && data.status !== "pending")){
+
+                    res.writeHead(400 , {
+                        "content-type" : "application/json"
+                    });
+
+                    return res.end(JSON.stringify({
+                        error : "invalid data"
+                    }));
+                }
+
+                const newTask = {
+                    id : tasks.length + 1 ,
+                    title : data.title , 
+                    status : data.status
+                }
+
+                tasks.push(newTask);
+
+                res.writeHead(201 , {
+                    "content-type" : "application/json"
+                });
+
+               return res.end(JSON.stringify({
+                    message : "task added successfully" ,
+                    task : newTask
+                }));
+            }
+            catch(error){
+
+                res.writeHead(400 , {
+                    "content-type" : "application/json"
+                });
+
+                return res.end(JSON.stringify({
+                    error : "invalid json"
+                }));
+            }
+        })
+
+        return;
+    }
+
+    res.writeHead(404 , {
+        "content-type" : "application/json"
     });
 
-    res.end(JSON.stringify({
+    return res.end(JSON.stringify({
         error : "route not found"
     }));
 });
